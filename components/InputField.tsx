@@ -61,9 +61,9 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   input: {
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    borderRadius: 18,
+    paddingHorizontal: 17,
+    paddingVertical: 12,
     fontSize: 17,
     fontWeight: "500",
     letterSpacing: -0.68,

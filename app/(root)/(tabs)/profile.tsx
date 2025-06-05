@@ -101,7 +101,8 @@ const Profile = () => {
 
   const navigateToNotifications = () => {
     // Navigate to notifications screen
-    Alert.alert("Notifications", "Navigate to notifications screen");
+    // Alert.alert("Notifications", "Navigate to notifications screen");
+    router.push("/(root)/notifications");
   };
 
   const navigateToTerms = () => {

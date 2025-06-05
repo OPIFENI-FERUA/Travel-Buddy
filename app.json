@@ -38,6 +38,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": "https://buddy.com/"
+      },
+      "eas": {
+        "projectId": "a974b67d-8e3b-4151-9e05-b3e103c78b2d"
+      }
+    },
+    "owner": "opifeni"
   }
 }

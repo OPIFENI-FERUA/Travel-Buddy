@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   imageContainer: { position: "relative", width: "90%", height: 180, marginBottom: 20 },
   title: { position: "absolute", bottom: 20, left: 50, top:100, fontSize: 24, fontWeight: "bold", color: "#000" },
   titles: { position: "absolute", bottom: 0, left: 20, fontSize: 16, fontWeight: "bold", fontFamily: "Jakarta-SemiBold", textAlign: "center", top: 140, color: "#000" },
-  formContainer: { padding: 5 },
+  formContainer: { padding: 17 },
   button: { marginTop: 15, width: "90%", marginLeft: 20 },
   linkText: { fontSize: 18, textAlign: "center", marginTop: 10, color: "#000", fontWeight: "bold" },
   linkHighlight: { color: "#3737ff" },

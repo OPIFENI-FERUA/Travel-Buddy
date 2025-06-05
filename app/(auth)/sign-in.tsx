@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   imageContainer: { position: "relative", width: "90%", height: 190, marginBottom: 20 },
   title: { position: "absolute", bottom: 20, left: 50, top:100, fontSize: 24, fontWeight: "bold", color: "#000" },
   titles: { position: "absolute", bottom: 0, left: 20, fontSize: 16, fontWeight: "bold", fontFamily: "Jakarta-SemiBold", textAlign: "center", top: 140, color: "#000" },
-  formContainer: { padding: 5 },
+  formContainer: { padding: 17 },
   signInButton: {
     marginTop: 24, // mt-6
     width: "90%",
