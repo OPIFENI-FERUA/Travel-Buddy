@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: -0.8,
     backgroundColor: "#fff",
-    padding: 16,
+    padding: 0,
     borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: {

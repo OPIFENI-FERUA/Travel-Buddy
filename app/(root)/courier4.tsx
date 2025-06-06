@@ -8,16 +8,17 @@ import { useFormStore } from "@/store/useFormStore";
 import { fetchAPI } from "@/lib/fetch";
 import { useAuth } from "@clerk/clerk-expo";
 
-const DetailRow = ({ label, value }: { label: string; value: string }) => (
+const DetailRow = ({ label, value, textStyle }: { label: string; value: string; textStyle?: any }) => (
   <View style={styles.detailRow}>
     <Text style={styles.detailLabel}>{label}</Text>
-    <Text style={styles.detailValue}>{value}</Text>
+    <Text style={[styles.detailValue, textStyle]}>{value}</Text>
   </View>
 );
 
 const Courier4Screen: React.FC = () => {
-  const formData = useFormStore((state) => state.getFormData());
-  const packageData = useFormStore((state) => state.packaged);
+  const { getFormData, packaged, resetForm } = useFormStore();
+  const formData = getFormData();
+  const packageData = packaged;
 
   const [isLoading, setIsLoading] = useState(false);
   const { userId } = useAuth();
@@ -39,9 +40,8 @@ const Courier4Screen: React.FC = () => {
     month: '2-digit', 
     year: 'numeric' 
   });
-  const handleProceed = async () => {
 
-  
+  const handleProceed = async () => {
     if (!userId) {
       Alert.alert("Authentication Error", "User not authenticated");
       return;
@@ -74,10 +74,17 @@ const Courier4Screen: React.FC = () => {
         clerk_id: userId,
         
         // Image handling
-        image_url: packageData.image
+        image_url: packageData.image,
+
+        // Amount
+        amount: totalAmount
       };
       
       console.log("Payload contents:", payload);
+      console.log("Mobile numbers in payload:", {
+        sender: payload.sender_mobile,
+        receiver: payload.receiver_mobile
+      });
       
       // Send the payload directly without nesting it
       const result = await fetchAPI("/(api)/booking", {
@@ -89,20 +96,30 @@ const Courier4Screen: React.FC = () => {
       });
   
       console.log("Booking success:", result);
-      // resetForm();
-      router.push("/payment");
+      
+      if (result.success && result.bookingId) {
+        // Reset the form after successful booking
+        resetForm();
+        
+        router.push({
+          pathname: "/(root)/payment",
+          params: { 
+            bookingId: result.bookingId,
+            amount: totalAmount.toString()
+          }
+        });
+      } else {
+        throw new Error("Failed to create booking");
+      }
   
     } catch (err: any) {
       console.error("Booking failed:", err);
       Alert.alert("Booking Error", err.message || "Failed to create booking. Please try again.");
-    
   } finally {
     // Set loading to false regardless of success or failure
     setIsLoading(false);
   }
 };
-
-  
 
   return (
     <ScrollView style={styles.scrollView}>
@@ -179,7 +196,6 @@ const Courier4Screen: React.FC = () => {
         <CustomButton
           title="Proceed to payment"
           onPress={handleProceed}
-
           style={styles.proceedButton}
           IconRight={RightArrowIcon}
         />
@@ -264,7 +280,3 @@ const styles = StyleSheet.create({
 });
 
 export default Courier4Screen;
-
-function setIsLoading(arg0: boolean) {
-  throw new Error("Function not implemented.");
-}

@@ -1,50 +1,138 @@
-import * as React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Image, StyleSheet, Dimensions, TouchableOpacity, FlatList } from 'react-native';
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 interface AdvertBannerProps {
-  imageUrl: string;
+  images: (string | number)[];
+  autoScrollInterval?: number;
 }
 
-const AdvertBanner: React.FC<AdvertBannerProps> = ({ imageUrl }) => {
+const { width } = Dimensions.get('window');
+
+const AdvertBanner: React.FC<AdvertBannerProps> = ({ 
+  images, 
+  autoScrollInterval = 5000 
+}) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (flatListRef.current) {
+        const nextIndex = (activeIndex + 1) % images.length;
+        flatListRef.current.scrollToIndex({
+          index: nextIndex,
+          animated: true
+        });
+        setActiveIndex(nextIndex);
+      }
+    }, autoScrollInterval);
+
+    return () => clearInterval(interval);
+  }, [activeIndex, images.length, autoScrollInterval]);
+
+  const renderItem = ({ item }: { item: string | number }) => {
+    return (
+      <View style={styles.imageContainer}>
+        <Image
+          source={typeof item === 'string' ? { uri: item } : item}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      </View>
+    );
+  };
+
+  const renderDot = (index: number) => {
+    const isActive = index === activeIndex;
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: withSpring(isActive ? 1.2 : 1) }],
+      opacity: withSpring(isActive ? 1 : 0.5),
+    }));
+
+    return (
+      <TouchableOpacity
+        key={index}
+        onPress={() => {
+          if (flatListRef.current) {
+            flatListRef.current.scrollToIndex({
+              index,
+              animated: true
+            });
+            setActiveIndex(index);
+          }
+        }}
+      >
+        <Animated.View
+          style={[
+            styles.dot,
+            isActive && styles.activeDot,
+            animatedStyle
+          ]}
+        />
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.textContainer}>
-        <Text style={styles.text}>ADVERTS & OFFERS{"\n\n"}EVERY FRIDAY </Text>
+      <FlatList
+        ref={flatListRef}
+        data={images}
+        renderItem={renderItem}
+        keyExtractor={(_, index) => index.toString()}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(event) => {
+          const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+          setActiveIndex(newIndex);
+        }}
+      />
+      <View style={styles.dotsContainer}>
+        {images.map((_, index) => renderDot(index))}
       </View>
-      <Image source={{ uri: imageUrl }} style={styles.image} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 11,
-    paddingLeft: 22,
-    paddingRight: 3,
-    paddingTop: 19,
-    paddingBottom: 44,
-    backgroundColor: "#3737ff", // Assuming black background based on white text
+    width: '100%',
+    height: 180,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
   },
-  textContainer: {
-    marginTop: 19,
-    marginRight: -26,
-  },
-  text: {
-    fontSize: 20,
-    color: "rgba(255, 255, 255, 1)",
-    letterSpacing: -0.8,
-    lineHeight: 20,
-    fontWeight: "700",
+  imageContainer: {
+    width: width - 32, // Account for padding
+    height: 180,
+    paddingHorizontal: 16,
   },
   image: {
-    aspectRatio: 2.09,
-    width: 205,
-    maxWidth: "100%",
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#3737ff',
   },
 });
 

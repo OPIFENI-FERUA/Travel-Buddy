@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   View, 
   Text, 
@@ -9,10 +9,14 @@ import {
   Modal, 
   TextInput, 
   KeyboardAvoidingView, 
-  Platform 
+  Platform,
+  Alert,
+  ActivityIndicator
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { icons } from "@/constants";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { fetchAPI } from "@/lib/fetch";
 
 // Assuming you'll add these images to your assets
 // If not already in constants, you'll need to add them or require directly
@@ -77,43 +81,190 @@ const ProviderOption = ({
 );
 
 const PaymentScreen = () => {
+  const { bookingId, amount: initialAmount } = useLocalSearchParams();
+  const { user } = useUser();
   const [selectedPayment, setSelectedPayment] = useState<"wallet" | "mobile">("wallet");
   const [modalVisible, setModalVisible] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(initialAmount?.toString() || "0");
   const [selectedProvider, setSelectedProvider] = useState<"mtn" | "airtel">("mtn");
+  const [loading, setLoading] = useState(true);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
+
+  useEffect(() => {
+    if (!bookingId) {
+      Alert.alert("Error", "No booking selected");
+      router.back();
+      return;
+    }
+
+    // If we have an initial amount (from direct payment), use it
+    if (initialAmount) {
+      setAmount(initialAmount.toString());
+      setLoading(false);
+    } else {
+      // Otherwise fetch from booking details
+      fetchBookingDetails();
+    }
+  }, [bookingId, initialAmount]);
+
+  const fetchBookingDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchAPI(`/(api)/booking?clerkId=${user?.id}`);
+      if (response.success && response.bookings) {
+        const booking = response.bookings.find((b: any) => b.id === bookingId);
+        if (booking) {
+          setBookingDetails(booking);
+          setAmount(booking.amount?.toString() || "0");
+        } else {
+          Alert.alert("Error", "Booking not found");
+          router.back();
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      Alert.alert("Error", "Failed to fetch booking details");
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMobileMoneySelect = () => {
     setSelectedPayment("mobile");
     setModalVisible(true);
   };
 
-  const handleSubmitPayment = () => {
-    console.log("Processing payment:", { 
-      method: "mobile", 
-      provider: selectedProvider,
-      phoneNumber, 
-      amount 
-    });
-    setModalVisible(false);
-    setSuccessModalVisible(true);
-    // After 2 seconds, navigate to home
-    setTimeout(() => {
-      setSuccessModalVisible(false);
-      router.replace("/");
-    }, 2000);
+  const handleSubmitPayment = async () => {
+    if (!user?.id || !bookingId) {
+      Alert.alert("Error", "Missing user ID or booking ID");
+      return;
+    }
+
+    try {
+      console.log("Processing mobile money payment:", {
+        userId: user?.id,
+        amount,
+        bookingId
+      });
+
+      // Process mobile money payment
+      const result = await fetchAPI("/(api)/transactions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clerkId: user?.id,
+          amount: amount,
+          provider: "mobile_money",
+          transactionType: "profit",
+          description: "Mobile money payment for booking",
+          phoneNumber: phoneNumber,
+        }),
+      });
+
+      console.log("Payment API response:", result);
+
+      if (!result.success) {
+        throw new Error(result.error || "Payment failed");
+      }
+
+      // Update booking status
+      const updateResult = await fetchAPI("/(api)/booking", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bookingId: bookingId,
+          status: "complete",
+        }),
+      });
+
+      console.log("Booking update response:", updateResult);
+
+      if (!updateResult.success) {
+        throw new Error(updateResult.error || "Failed to update booking status");
+      }
+
+      Alert.alert("Success", "Payment processed successfully");
+      router.push("./(tabs)/home");
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      Alert.alert("Error", error.message || "Failed to process payment");
+    }
   };
 
-  const handleWalletPayment = () => {
-    console.log("Processing wallet payment");
-    setSuccessModalVisible(true);
-    // After 2 seconds, navigate to home
-    setTimeout(() => {
-      setSuccessModalVisible(false);
-      router.replace("/");
-    }, 2000);
+  const handleWalletPayment = async () => {
+    if (!user?.id || !bookingId) {
+      Alert.alert("Error", "Missing user ID or booking ID");
+      return;
+    }
+
+    try {
+      console.log("Processing wallet payment:", {
+        userId: user?.id,
+        amount,
+        bookingId
+      });
+
+      // Process wallet payment
+      const result = await fetchAPI("/(api)/transactions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clerkId: user?.id,
+          amount: amount,
+          provider: "wallet",
+          transactionType: "debit",
+          description: "Wallet payment for booking",
+        }),
+      });
+
+      console.log("Payment API response:", result);
+
+      if (!result.success) {
+        throw new Error(result.error || "Payment failed");
+      }
+
+      // Update booking status
+      const updateResult = await fetchAPI("/(api)/booking", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bookingId: bookingId,
+          status: "complete",
+        }),
+      });
+
+      console.log("Booking update response:", updateResult);
+
+      if (!updateResult.success) {
+        throw new Error(updateResult.error || "Failed to update booking status");
+      }
+
+      Alert.alert("Success", "Payment processed successfully");
+      router.push("./(tabs)/home");
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      Alert.alert("Error", error.message || "Failed to process payment");
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3737ff" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.scrollView}>
@@ -136,6 +287,12 @@ const PaymentScreen = () => {
       {/* Main content */}
       <View style={styles.container}>
         <Text style={styles.sectionTitle}>Choose Payment Method</Text>
+
+        {/* Amount Display */}
+        <View style={styles.amountContainer}>
+          <Text style={styles.amountLabel}>Amount to Pay:</Text>
+          <Text style={styles.amountValue}>Shs {parseFloat(amount).toLocaleString()}</Text>
+        </View>
 
         {/* Payment options */}
         <View style={styles.paymentOptionsContainer}>
@@ -169,7 +326,7 @@ const PaymentScreen = () => {
             }
           }}
         >
-          <Text style={styles.payButtonText}>Pay</Text>
+          <Text style={styles.payButtonText}>Pay Shs {parseFloat(amount).toLocaleString()}</Text>
         </TouchableOpacity>
       </View>
 
@@ -562,6 +719,34 @@ const styles = StyleSheet.create({
     fontFamily: 'JakartaRegular',
     color: '#666',
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  amountContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  amountLabel: {
+    fontSize: 14,
+    fontFamily: "JakartaMedium",
+    color: '#666',
+    marginBottom: 4,
+  },
+  amountValue: {
+    fontSize: 24,
+    fontFamily: "JakartaBold",
+    color: '#333',
   },
 });
 

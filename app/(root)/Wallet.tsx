@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,14 +10,28 @@ import {
   Modal,
   TextInput,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Alert,
+  ActivityIndicator
 } from "react-native";
 import { router } from "expo-router";
 import { icons } from "@/constants";
+import { fetchAPI } from "@/lib/fetch";
+import {  useAuth, useUser } from "@clerk/clerk-expo";
 
 // Assuming you'll add these images to your assets
 const mtnLogo = require("@/assets/images/mtn.png");
 const airtelLogo = require("@/assets/images/airtel.png");
+
+interface Transaction {
+  id: string;
+  amount: string;
+  provider: string;
+  transaction_type: 'credit' | 'debit';
+  description: string;
+  phone_number: string;
+  created_at: string;
+}
 
 // Provider selection option component
 const ProviderOption = ({
@@ -54,24 +68,28 @@ const TransactionItem = ({
   transactionId,
   amount,
   date,
-  time
+  time,
+  type
 }: {
   transactionId: string;
   amount: string;
   date: string;
   time: string;
+  type: 'credit' | 'debit';
 }) => (
   <View style={styles.transactionItem}>
     <View style={styles.transactionLeft}>
-      <View style={styles.transactionIcon}>
-        <Text style={styles.iconText}>₵</Text>
+      <View style={[styles.transactionIcon, type === 'credit' ? styles.creditIcon : styles.debitIcon]}>
+        <Text style={styles.iconText}>{type === 'credit' ? '+' : '-'}</Text>
       </View>
       <View>
         <Text style={styles.transactionId}>{transactionId}</Text>
         <Text style={styles.transactionDate}>{date} · {time}</Text>
       </View>
     </View>
-    <Text style={styles.transactionAmount}>{amount}</Text>
+    <Text style={[styles.transactionAmount, type === 'credit' ? styles.creditAmount : styles.debitAmount]}>
+      {type === 'credit' ? '+' : '-'}UG SHS {amount}
+    </Text>
   </View>
 );
 
@@ -80,27 +98,184 @@ const WalletScreen = () => {
   const [addAmount, setAddAmount] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<"mtn" | "airtel">("mtn");
-  
-  // Mock transaction data
-  const transactions = [
-    { id: '1', transactionId: '#BKD646646', amount: 'SHS 25,000', date: '23/02/25', time: '11:00pm' },
-    { id: '2', transactionId: '#BKD646646', amount: 'SHS 25,000', date: '23/02/25', time: '11:00pm' },
-    { id: '3', transactionId: '#BKD646646', amount: 'SHS 25,000', date: '23/02/25', time: '11:00pm' },
-    { id: '4', transactionId: '#BKD646646', amount: 'SHS 25,000', date: '23/02/25', time: '11:00pm' },
-    { id: '5', transactionId: '#BKD646646', amount: 'SHS 25,000', date: '23/02/25', time: '11:00pm' },
-    { id: '6', transactionId: '#BKD646646', amount: 'SHS 25,000', date: '23/02/25', time: '11:00pm' },
-  ];
+  const { userId } = useAuth();
+  const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<number>(0);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(true);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
 
-  const handleAddMoney = () => {
-    console.log("Adding money to wallet:", { 
+  // Fetch transactions
+  const fetchTransactions = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoadingTransactions(true);
+      const response = await fetchAPI(`/(api)/transactions?clerkId=${user.id}`);
+      
+      if (response.success) {
+        setTransactions(response.transactions);
+      } else {
+        console.error("Failed to fetch transactions:", response.error);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+      setIsLoadingTransactions(false);
+    }
+  };
+
+  // Fetch transactions on mount and after successful transactions
+  useEffect(() => {
+    fetchTransactions();
+  }, [user?.id]);
+
+  // Fetch balance
+  const fetchBalance = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoadingBalance(true);
+      const response = await fetchAPI(`/(api)/balance?clerkId=${user.id}`);
+      
+      if (response.success) {
+        setBalance(response.balance);
+      } else {
+        console.error("Failed to fetch balance:", response.error);
+      }
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+    } finally {
+      setIsLoadingBalance(false);
+    }
+  };
+
+  // Fetch balance on mount and after successful transactions
+  useEffect(() => {
+    fetchBalance();
+  }, [user?.id]);
+
+  const validateTransaction = () => {
+    if (!addAmount || isNaN(Number(addAmount)) || Number(addAmount) <= 0) {
+      const errorMsg = "Please enter a valid amount";
+      console.error("Validation Error:", {
+        type: "amount",
+        value: addAmount,
+        message: errorMsg
+      });
+      setError(errorMsg);
+      return false;
+    }
+    if (!phoneNumber || phoneNumber.length !== 10) {
+      const errorMsg = "Phone number must be exactly 10 digits";
+      console.error("Validation Error:", {
+        type: "phone",
+        value: phoneNumber,
+        length: phoneNumber?.length,
+        message: errorMsg
+      });
+      setError(errorMsg);
+      return false;
+    }
+    if (!selectedProvider) {
+      const errorMsg = "Please select a provider";
+      console.error("Validation Error:", {
+        type: "provider",
+        value: selectedProvider,
+        message: errorMsg
+      });
+      setError(errorMsg);
+      return false;
+    }
+    return true;
+  };
+
+  const handleAddMoney = async () => {
+    setError(null);
+    
+    if (!validateTransaction()) {
+      return;
+    }
+
+    if (!user?.id) {
+      const errorMsg = "User not authenticated";
+      console.error("Authentication Error:", {
+        userId: user?.id,
+        message: errorMsg
+      });
+      setError(errorMsg);
+      return;
+    }
+
+    setIsLoading(true);
+    
+    const transaction = {
+      clerkId: user.id,
+      amount: addAmount,
       provider: selectedProvider,
-      phoneNumber, 
-      amount: addAmount 
+      transactionType: "credit",
+      description: "Wallet top-up",
+      phoneNumber: phoneNumber,
+    };
+
+    console.log("Attempting transaction:", {
+      amount: addAmount,
+      provider: selectedProvider,
+      phoneNumber: phoneNumber
     });
+  
+    try {
+      const response = await fetchAPI('/(api)/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transaction),
+      });
+
+      if (!response.message || !response.data) {
+        console.error("Invalid API Response:", response);
+        throw new Error('Invalid response from server');
+      }
+
+      console.log("Transaction successful:", {
+        message: response.message,
+        data: response.data
+      });
+      
+      // Success handling
     setModalVisible(false);
     setAddAmount("");
     setPhoneNumber("");
-    // Implement adding money logic here
+      Alert.alert("Success", "Money added successfully!");
+      
+      // Refresh balance and transactions after successful transaction
+      fetchBalance();
+      fetchTransactions();
+      
+    } catch (error) {
+      console.error("Transaction Error:", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+        transaction: {
+          amount: addAmount,
+          provider: selectedProvider,
+          phoneNumber: phoneNumber
+        }
+      });
+      setError(error instanceof Error ? error.message : "Failed to add money. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Format date and time for display
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString(),
+      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
   };
 
   return (
@@ -124,7 +299,11 @@ const WalletScreen = () => {
       {/* Balance Section */}
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}>Your Balance</Text>
-        <Text style={styles.balanceAmount}>SHS 50,000</Text>
+        {isLoadingBalance ? (
+          <ActivityIndicator color="#fff" size="small" style={styles.balanceLoader} />
+        ) : (
+          <Text style={styles.balanceAmount}>UG SHS {balance.toLocaleString()}</Text>
+        )}
         <TouchableOpacity 
           style={styles.addButton}
           onPress={() => setModalVisible(true)}
@@ -136,19 +315,30 @@ const WalletScreen = () => {
       {/* Transactions Section */}
       <View style={styles.transactionsContainer}>
         <Text style={styles.transactionsLabel}>Recent Transactions</Text>
+        {isLoadingTransactions ? (
+          <ActivityIndicator color="#3737ff" size="small" style={styles.transactionsLoader} />
+        ) : transactions.length === 0 ? (
+          <Text style={styles.noTransactionsText}>No transactions yet</Text>
+        ) : (
         <FlatList
           data={transactions}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+            keyExtractor={(item) => item.id?.toString() || `transaction-${item.created_at}`}
+            renderItem={({ item }) => {
+              const { date, time } = formatDateTime(item.created_at);
+              const transactionId = item.id ? `#TRX${item.id.toString().padStart(6, '0')}` : '#TRX000000';
+              return (
             <TransactionItem
-              transactionId={item.transactionId}
+                  transactionId={transactionId}
               amount={item.amount}
-              date={item.date}
-              time={item.time}
+                  date={date}
+                  time={time}
+                  type={item.transaction_type}
             />
-          )}
+              );
+            }}
           showsVerticalScrollIndicator={false}
         />
+        )}
       </View>
 
       {/* Add Money Modal */}
@@ -187,8 +377,13 @@ const WalletScreen = () => {
                 style={styles.input}
                 placeholder="Enter your phone number"
                 value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                onChangeText={(text) => {
+                  // Only allow digits and limit to 10 characters
+                  const digitsOnly = text.replace(/[^0-9]/g, '').slice(0, 10);
+                  setPhoneNumber(digitsOnly);
+                }}
                 keyboardType="phone-pad"
+                maxLength={10}
               />
             </View>
             
@@ -212,12 +407,21 @@ const WalletScreen = () => {
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={styles.submitButton}
+                style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
                 onPress={handleAddMoney}
+                disabled={isLoading}
               >
+                {isLoading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
                 <Text style={styles.submitButtonText}>Submit</Text>
+                )}
               </TouchableOpacity>
             </View>
+
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -470,6 +674,40 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontFamily: 'JakartaMedium',
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    fontFamily: 'JakartaRegular',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  balanceLoader: {
+    marginTop: 16,
+  },
+  creditIcon: {
+    backgroundColor: '#E6F4EA',
+  },
+  debitIcon: {
+    backgroundColor: '#FCE8E6',
+  },
+  creditAmount: {
+    color: '#34A853',
+  },
+  debitAmount: {
+    color: '#EA4335',
+  },
+  transactionsLoader: {
+    marginTop: 20,
+  },
+  noTransactionsText: {
+    textAlign: 'center',
+    color: '#666',
+    fontFamily: 'JakartaRegular',
+    marginTop: 20,
   },
 });
 

@@ -53,7 +53,7 @@ export default function NotificationInbox({ }) {
           renderItem={renderItem}
           ListEmptyComponent={<Text style={styles.emptyInbox}>No notifications found.</Text>}
         />
-      </View>
+    </View>
     </SafeAreaView>
   );
 }
@@ -73,11 +73,13 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#3737FF',
-    paddingVertical: 24,
+    paddingVertical: 44,
     paddingHorizontal: 24,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     alignItems: 'center',
+    
+
   },
   backButton: {
     padding: 10,

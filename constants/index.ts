@@ -42,6 +42,10 @@ import image1 from "@/assets/images/image1.jpg";
 import bus from "@/assets/images/bus.jpeg";
 import airtel from "@/assets/images/airtel.png";
 import mtn from "@/assets/images/mtn.png";
+import banner1 from "@/assets/images/banner1.jpg";
+import banner2 from "@/assets/images/banner2.jpg";
+
+
 
 export const images = {
     onboarding1,
@@ -57,7 +61,8 @@ export const images = {
     bus,
     airtel,
     mtn,
-  
+    banner1,
+    banner2,
 };
 
 export const icons = {

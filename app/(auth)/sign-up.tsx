@@ -139,7 +139,7 @@ const SignUp = () => {
             />
 
             <CustomButton title="Sign Up" onPress={onSignUpPress} style={styles.button} />
-            <OAuth />
+            
             <Link href="/sign-in" style={styles.linkText}>
               Already have an account? <Text style={styles.linkHighlight}>Log In</Text>
             </Link>

@@ -217,20 +217,20 @@ const styles = StyleSheet.create({
     maxWidth: 440,
     marginLeft: "auto",
     marginRight: "auto",
-    marginTop: 26,
+  
   },
   headerContainer: {
     width: "100%",
-    height: 280,
+    height: 300,
     backgroundColor: "#3737FF",
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    // borderTopLeftRadius: 30,
+    // borderTopRightRadius: 30,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowRadius: 1,
       },
       android: {
         elevation: 8,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    paddingTop: 20,
+    paddingTop: 40,
   },
   accountTitle: {
     fontSize: 24,
@@ -311,12 +311,12 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: -4 },
+        shadowOffset: { width: 0, height: -9 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
       },
       android: {
-        elevation: 8,
+        elevation: 88,
       },
     }),
   },

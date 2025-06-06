@@ -68,11 +68,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, image }) => {
 
 const styles = StyleSheet.create({
   container: {
-    borderTopLeftRadius: 55,
-    borderTopRightRadius: 55,
+
     width: "100%",
-    paddingHorizontal: 80,
-    paddingTop: 12,
+    
+    paddingTop: 27,
     paddingBottom: 33,
     alignItems: "center",
     backgroundColor: "#3737ff",

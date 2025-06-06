@@ -250,11 +250,13 @@ const Profile: React.FC = () => {
             <Image source={icons.backArrow} resizeMode="contain" style={styles.backIcon} />
           </TouchableOpacity>
           
-          <TouchableOpacity onPress={pickImage} disabled={isUploading}>
+         
             <ProfileHeader 
+            
               name={form.name} 
               image={{ uri: form.profileImage || user?.imageUrl }} 
             />
+             <TouchableOpacity onPress={pickImage} disabled={isUploading}>
             {isUploading ? (
               <ActivityIndicator style={styles.editImageOverlay} color="#0000ff" />
             ) : (
@@ -365,7 +367,7 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     width: "100%",
     marginHorizontal: "auto",
-    paddingTop: 33,
+    paddingTop: 3,
   },
   backButton: {
     width: 40,

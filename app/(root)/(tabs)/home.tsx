@@ -11,52 +11,73 @@ import registerNNPushToken from 'native-notify';
 
 // Define Ride type
 interface Ride {
-  id: string;
-  rideId: string;
-  pickup: string;
-  destination: string;
   date: string;
-  status: 'pending' | 'complete' | 'draft';
+  id: string;
+  status: "pending" | "complete" | "draft";
+  sender_location: string;
+  receiver_location: string;
+  created_at: string;
 }
+
+const formatDateTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return {
+    date: date.toLocaleDateString(),
+    time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  };
+};
 
 // Recent ride item component
 const RecentRideItem: React.FC<{ ride: Ride }> = ({ ride }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'complete':
-        return '#4CAF50';
-      case 'pending':
-        return '#FFC107';
-      case 'draft':
-        return '#9E9E9E';
-      default:
-        return '#9E9E9E';
-    }
-  };
-
+  const { date, time } = formatDateTime(ride.created_at);
+  const transactionId = ride.id ? `#BKD${ride.id.toString().padStart(6, '0')}` : '#BKD000000';
+  
   return (
-    <TouchableOpacity 
-      style={styles.rideItem}
-      onPress={() => router.push(`/(root)/pending`)}
+    <TouchableOpacity
+      style={styles.recentRideItem}
+      onPress={() => {
+        if (ride.status === "pending") {
+          router.push('/pending');
+        }
+      }}
     >
-      <View style={styles.rideContent}>
-        <View style={styles.rideHeader}>
-          <Text style={styles.rideId}>{ride.rideId}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(ride.status) }]}>
-            <Text style={styles.statusText}>{ride.status}</Text>
-          </View>
+      <View style={styles.rideHeader}>
+        <View style={styles.rideIdContainer}>
+          <Text style={styles.rideId}>{transactionId.substring(0, 12)}</Text>
+          <Text style={styles.dateText}>{ride.date}</Text>
         </View>
-        <View style={styles.routeInfo}>
-          <View style={styles.location}>
-            <Image source={icons.map} style={styles.locationIcon} />
-            <Text style={styles.locationText}>{ride.pickup}</Text>
-          </View>
-          <View style={styles.locationRow}>
-            <View style={styles.location}>
+        <View style={[
+          styles.statusBadge,
+          ride.status === "pending" ? styles.pendingBadge : 
+          ride.status === "complete" ? styles.completedBadge : styles.draftBadge
+        ]}>
+          <Text style={styles.statusText}>
+            {ride.status === "pending" ? "Pending" : 
+             ride.status === "complete" ? "Complete" : "Draft"}
+          </Text>
+        </View>
+      </View>
+      
+      <View style={styles.locationContainer}>
+        <View style={styles.locationRow}>
+          <View style={styles.locationItem}>
+            <View style={styles.locationIconContainer}>
               <Image source={icons.map} style={styles.locationIcon} />
-              <Text style={styles.locationText}>{ride.destination}</Text>
             </View>
-            <Text style={styles.date}>{ride.date}</Text>
+            <View style={styles.locationTextContainer}>
+              <Text style={styles.locationLabel}>Pickup</Text>
+              <Text style={styles.locationText}>{ride.sender_location}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.locationItem}>
+            <View style={[styles.locationIconContainer, styles.destinationIconContainer]}>
+              <Image source={icons.pin} style={styles.destinationIcon} />
+            </View>
+            <View style={styles.locationTextContainer}>
+              <Text style={styles.locationLabel}>Destination</Text>
+              <Text style={styles.locationText}>{ride.receiver_location}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -69,14 +90,14 @@ const RecentBookings: React.FC<{ rides: Ride[]; limit?: number }> = ({ rides, li
   const recent = rides.slice(0, limit);
   return (
     <View style={styles.recentContainer}>
-      <Text style={styles.sectionTitle}>Recent Bookings</Text>
+      <Text style={styles.sectionTitle1}>Recent Bookings</Text>
       <FlatList
         data={recent}
         keyExtractor={item => item.id}
         renderItem={({ item }) => <RecentRideItem ride={item} />}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, marginBottom: 100 , marginTop: 10}}
       />
     </View>
   );
@@ -150,6 +171,9 @@ const HOME: React.FC = () => {
 
   return (
     <ScrollView 
+      scrollEnabled={false}
+      bounces={false}
+      showsVerticalScrollIndicator={false}
       style={styles.container}
       refreshControl={
         <RefreshControl
@@ -159,8 +183,17 @@ const HOME: React.FC = () => {
         />
       }
     >
+      <View style={styles.topbar}>
+        
+      </View>
       <WelcomeHeader userName={user?.emailAddresses[0].emailAddress.split( "6")[0] + "👋"} notificationCount={3} />
-      <AdvertBanner imageUrl="https://cdn.builder.io/api/v1/image/assets/TEMP/51950e43f6c8bb7d9c82f3b281ad0bfea6fc3e45?placeholderIfAbsent=true&apiKey=d0abf0f57c184d169e2497766c802d1f" />
+      <AdvertBanner
+        images={[
+          require("@/assets/images/banner1.jpg"),
+          require("@/assets/images/banner2.jpg"),
+        ]}
+        autoScrollInterval={5000} // 7 seconds between slides
+      />
 
       <View style={styles.sectionTitleContainer}>
         <Text style={styles.sectionTitle}>What are we doing today?</Text>
@@ -182,20 +215,32 @@ const HOME: React.FC = () => {
       </View>
 
       {/* Recent Bookings */}
-      <RecentBookings rides={bookings} limit={3} />
+      <RecentBookings rides={bookings} limit={3}/>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  topbar: {
+    backgroundColor: "#3737ff",
+    width: "100%",
+    height: 35,
+    marginTop: -10,
+    borderRadius: 10,
+  
+   
+
+
+  },
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
     marginTop: 1,
-    padding: 20,
-    margin: 12,
+    padding: 10,
+    marginLeft: 10,
+    marginRight: 10,
     paddingHorizontal: 1,
-    paddingBottom: 24,
+    paddingBottom: 10,
   },
   loadingContainer: {
     flex: 1,
@@ -226,96 +271,135 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'JakartaBold',
     color: "#1a1a1a",
+    fontWeight: 'semibold',
     letterSpacing: -0.5,
+    marginLeft:90,
+    
+  },
+  sectionTitle1: {
+    fontSize: 18,
+    fontFamily: 'JakartaBold',
+    color: "#1a1a1a",
+    fontWeight: 'semibold',
+    letterSpacing: -0.5,
+    marginLeft: 120,
+    
   },
   actionsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 5,
     gap: 12,
   },
   recentContainer: {
     marginTop: 30,
-    marginBottom: 24,
+    marginBottom: 100,
   },
-  rideItem: {
-    backgroundColor: "#fff",
+  recentRideItem: {
+    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginRight: 12,
-    width: 280,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  rideContent: {
-    flex: 1,
+    width: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   rideHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
+  rideIdContainer: {
+    flex: 1,
+  },
   rideId: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'JakartaBold',
-    color: "#1a1a1a",
-    letterSpacing: -0.3,
+    color: '#333',
+    marginBottom: 2,
   },
   statusBadge: {
-    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 16,
-    minWidth: 70,
-    alignItems: 'center',
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  pendingBadge: {
+    backgroundColor: '#FF6B00',
+  },
+  completedBadge: {
+    backgroundColor: '#E3F2FD',
+  },
+  draftBadge: {
+    backgroundColor: '#F3E5F5',
   },
   statusText: {
-    color: "#fff",
-    fontSize: 11,
+    color: '#333',
+    fontSize: 12,
     fontFamily: 'JakartaSemiBold',
-    textTransform: 'capitalize',
   },
-  routeInfo: {
-    marginBottom: 8,
-    gap: 6,
+  locationContainer: {
+    marginTop: 4,
   },
   locationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 12,
+  },
+  locationItem: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  location: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    flex: 1,
+  locationIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  destinationIconContainer: {
+    backgroundColor: '#FFF3E0',
   },
   locationIcon: {
     width: 16,
     height: 16,
-    tintColor: "#3737ff",
+    tintColor: '#3737FF',
   },
-  locationText: {
-    fontSize: 12,
-    fontFamily: 'JakartaMedium',
-    color: "#4a4a4a",
+  destinationIcon: {
+    width: 14,
+    height: 14,
+    tintColor: '#FF6B00',
+  },
+  locationTextContainer: {
     flex: 1,
   },
-  date: {
+  locationLabel: {
     fontSize: 11,
+    fontFamily: 'JakartaMedium',
+    color: '#666',
+    marginBottom: 0,
+    marginTop: 15,
+  },
+  locationText: {
+    fontSize: 13,
+    fontFamily: 'JakartaSemiBold',
+    color: '#333',
+    lineHeight: 16,
+  },
+  dateText: {
+    fontSize: 12,
     fontFamily: 'JakartaRegular',
-    color: "#8e8e93",
-    marginLeft: 8,
+    color: '#666',
   },
 });
 
 export default HOME;
+

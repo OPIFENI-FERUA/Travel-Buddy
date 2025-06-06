@@ -73,7 +73,10 @@ const RideItem = ({
     }}
   >
     <View style={styles.rideHeader}>
-      <Text style={styles.rideId}>{rideId}</Text>
+      <View style={styles.rideIdContainer}>
+        <Text style={styles.rideId}>{rideId}</Text>
+        <Text style={styles.dateText}>{date}</Text>
+      </View>
       <View style={[
         styles.statusBadge,
         status === "pending" ? styles.pendingBadge : 
@@ -81,22 +84,32 @@ const RideItem = ({
       ]}>
         <Text style={styles.statusText}>
           {status === "pending" ? "Pending" : 
-           status === "complete" ? "Complete" : "Draft"}
+           status === "complete" ? "Complete" : "Cancelled"}
         </Text>
       </View>
     </View>
     
     <View style={styles.locationContainer}>
-      <View style={styles.locationItem}>
-        <Image source={icons.map} style={styles.locationIcon} />
-        <Text style={styles.locationText}>{pickup}</Text>
-        <Text style={styles.dateText}>{date}</Text>
-      </View>
-      
-      <View style={styles.locationItem}>
-        <Image source={icons.pin} style={[ styles.destinationIcon]} />
-        <Text style={styles.locationText}>{destination}</Text>
-        <Text style={styles.dateText}>{date}</Text>
+      <View style={styles.locationRow}>
+        <View style={styles.locationItem}>
+          <View style={styles.locationIconContainer}>
+            <Image source={icons.map} style={styles.locationIcon} />
+          </View>
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationLabel}>Pickup</Text>
+            <Text style={styles.locationText}>{pickup}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.locationItem}>
+          <View style={[styles.locationIconContainer, styles.destinationIconContainer]}>
+            <Image source={icons.pin} style={styles.destinationIcon} />
+          </View>
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationLabel}>Destination</Text>
+            <Text style={styles.locationText}>{destination}</Text>
+          </View>
+        </View>
       </View>
     </View>
   </TouchableOpacity>
@@ -234,11 +247,7 @@ const RidesScreen = () => {
             isActive={activeFilter === "pending"}
             onPress={() => setActiveFilter("pending")}
           />
-          <FilterTab 
-            title="Drafts" 
-            isActive={activeFilter === "draft"}
-            onPress={() => setActiveFilter("draft")}
-          />
+
         </View>
       </ScrollView>
 
@@ -248,7 +257,7 @@ const RidesScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <RideItem
-            rideId={item.rideId}
+            rideId={item.rideId.substring(0, 12)}
             pickup={item.pickup}
             destination={item.destination}
             date={item.date}
@@ -328,12 +337,16 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '80%',
+    // backgroundColor: '#fff',
     borderRadius: 30,
     paddingVertical: 8,
     paddingHorizontal: 8,
     marginHorizontal: 16,
+    marginLeft: 30,
+    
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -346,6 +359,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
+    width: '40%',
     backgroundColor: '#f0f0f0',
     marginHorizontal: 2,
     alignItems: 'center',
@@ -357,7 +371,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3737ff',
   },
   pendingTab: {
-    backgroundColor: '#ff6b00',
+    backgroundColor: '#FF6B00',
   },
   draftsTab: {
     backgroundColor: '#8e44ad',
@@ -388,72 +402,102 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     elevation: 2,
   },
   rideHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  rideIdContainer: {
+    flex: 1,
   },
   rideId: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'JakartaBold',
     color: '#333',
+    marginBottom: 2,
   },
   statusBadge: {
     paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginLeft: 8,
   },
   pendingBadge: {
     backgroundColor: '#FF6B00',
   },
   completedBadge: {
-    backgroundColor: '#3737FF',
+    backgroundColor: '#E3F2FD',
   },
   draftBadge: {
-    backgroundColor: '#8e44ad',
+    backgroundColor: '#F3E5F5',
   },
   statusText: {
-    color: '#fff',
+    color: '#333',
     fontSize: 12,
-    fontFamily: 'JakartaMedium',
+    fontFamily: 'JakartaSemiBold',
   },
   locationContainer: {
+    marginTop: 4,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 12,
   },
   locationItem: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },
+  locationIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  destinationIconContainer: {
+    backgroundColor: '#FFF3E0',
+  },
   locationIcon: {
-    width: 24,
-    height: 24,
-    marginRight: 12,
+    width: 16,
+    height: 16,
     tintColor: '#3737FF',
   },
   destinationIcon: {
+    width: 14,
+    height: 14,
     tintColor: '#FF6B00',
-    width: 20,
-    height: 21,
-    marginRight: 12
+  },
+  locationTextContainer: {
+    flex: 1,
+  },
+  locationLabel: {
+    fontSize: 11,
+    fontFamily: 'JakartaMedium',
+    color: '#666',
+    marginBottom: 1,
   },
   locationText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'JakartaSemiBold',
     color: '#333',
-    flex: 1,
+    lineHeight: 16,
   },
   dateText: {
     fontSize: 12,
     fontFamily: 'JakartaRegular',
-    color: '#888',
+    color: '#666',
   },
   loadingContainer: {
     flex: 1,
