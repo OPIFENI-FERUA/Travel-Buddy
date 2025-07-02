@@ -184,6 +184,18 @@ export async function POST(request: Request) {
         code: dbError.code,
         detail: dbError.detail
       });
+
+      // Check if error is due to insufficient balance
+      if (dbError.code === '23514' || dbError.message.includes('insufficient')) {
+        return Response.json(
+          { 
+            success: false,
+            error: "Insufficient balance to complete this transaction"
+          },
+          { status: 400 }
+        );
+      }
+
       return Response.json(
         { 
           success: false, 

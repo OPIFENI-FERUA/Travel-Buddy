@@ -2,7 +2,36 @@ import { router } from "expo-router";
 import { Text, View, StyleSheet, FlatList, TouchableOpacity, Image, Platform, Modal, SafeAreaView } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { icons } from "@/constants";
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import  { Marker, Polyline } from 'react-native-maps';
+
+
+// Instead of direct imports, use:
+
+
+// Or for web compatibility:
+let MapView;
+if (Platform.OS === 'web') {
+  MapView = require("@/components/WebMapView").default; // Create a web alternative
+} else {
+  MapView = require('react-native-maps').default;
+}
+// Helper function to calculate time left
+const calculateTimeLeft = (estimatedDelivery: string) => {
+  const now = new Date();
+  const delivery = new Date(estimatedDelivery);
+  const diff = delivery.getTime() - now.getTime();
+
+  if (diff <= 0) return "Arriving today";
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  return `${minutes}m left`;
+};
+
 
 interface Shipment {
   id: string;
@@ -62,8 +91,8 @@ const shipments: Shipment[] = [
       longitude: 32.5825
     },
     destination: {
-      latitude: 3.0201,
-      longitude: 30.9111
+      latitude: 1.6748,
+      longitude: 31.7150
     }
   },
   {
@@ -78,8 +107,8 @@ const shipments: Shipment[] = [
       longitude: 32.5825
     },
     destination: {
-      latitude: 3.0201,
-      longitude: 30.9111
+      latitude: 2.7746,
+      longitude: 32.2980
     }
   },
   {
@@ -94,8 +123,8 @@ const shipments: Shipment[] = [
       longitude: 32.5825
     },
     destination: {
-      latitude: 3.0201,
-      longitude: 30.9111
+      latitude: -0.6167,
+      longitude: 30.6500
     }
   }
 ];
@@ -105,43 +134,63 @@ interface ShipmentCardProps {
   onPress: (shipment: Shipment) => void;
 }
 
-const ShipmentCard: React.FC<ShipmentCardProps> = ({ item, onPress }) => (
-  <TouchableOpacity style={styles.card} onPress={() => onPress(item)}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.title}>{item.title}</Text>
-      <View style={[
-        styles.statusBadge,
-        item.status === 'in_transit' ? styles.inTransitBadge : styles.scheduledBadge
-      ]}>
-        <Text style={styles.statusText}>
-          {item.status === 'in_transit' ? 'In Transit' : 'Scheduled'}
-        </Text>
+const ShipmentCard: React.FC<ShipmentCardProps> = ({ item, onPress }) => {
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(item.estimatedDelivery));
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(item.estimatedDelivery));
+    }, 60000); // Update every minute
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [item.estimatedDelivery]);
+
+  return (
+    <TouchableOpacity style={styles.card} onPress={() => onPress(item)}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.title}>{item.title}</Text>
+        <View style={[
+          styles.statusBadge,
+          item.status === 'in_transit' ? styles.inTransitBadge : styles.scheduledBadge
+        ]}>
+          <Text style={styles.statusText}>
+            {item.status === 'in_transit' ? 'In Transit' : 'Scheduled'}
+          </Text>
+        </View>
       </View>
-    </View>
-    
-    <View style={styles.cardDetails}>
-      <View style={styles.detailRow}>
-        <Image source={icons.track} style={styles.icon} />
-        <Text style={styles.detailText}>Tracking: {item.trackingNumber}</Text>
+      
+      <View style={styles.cardDetails}>
+        <View style={styles.detailRow}>
+          <Image source={icons.track} style={styles.icon} />
+          <Text style={styles.detailText}>Tracking: {item.trackingNumber}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Image source={icons.map} style={styles.icon} />
+          <Text style={styles.detailText}>Delivery: {item.estimatedDelivery}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Image source={icons.map} style={styles.icon} />
+          <Text style={styles.detailText}>{item.currentLocation}</Text>
+        </View>
+        {item.status === 'in_transit' && (
+          <View style={styles.detailRow}>
+            <Image source={icons.track} style={styles.icon} />
+            <Text style={[styles.detailText, styles.timeLeftText]}>{timeLeft}</Text>
+          </View>
+        )}
       </View>
-      <View style={styles.detailRow}>
-        <Image source={icons.map} style={styles.icon} />
-        <Text style={styles.detailText}>Delivery: {item.estimatedDelivery}</Text>
-      </View>
-      <View style={styles.detailRow}>
-        <Image source={icons.map} style={styles.icon} />
-        <Text style={styles.detailText}>{item.currentLocation}</Text>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 const Track: React.FC = () => {
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [routeCoordinates, setRouteCoordinates] = useState<Array<{ latitude: number; longitude: number }>>([]);
   const [isTracking, setIsTracking] = useState(false);
-  const mapRef = useRef<MapView>(null);
-  const trackingInterval = useRef<number | null>(null);
+  const mapRef = useRef<typeof MapView>(null);
+  const trackingInterval = useRef<NodeJS.Timeout | null>(null);
   const currentRouteIndex = useRef<number>(0);
 
   const fetchRoute = async (origin: { latitude: number; longitude: number }, destination: { latitude: number; longitude: number }) => {
@@ -218,8 +267,10 @@ const Track: React.FC = () => {
   };
 
   const handleShipmentPress = (shipment: Shipment) => {
-    setSelectedShipment(shipment);
-    fetchRoute(shipment.coordinates, shipment.destination);
+    if (shipment.status === 'in_transit') {
+      setSelectedShipment(shipment);
+      fetchRoute(shipment.coordinates, shipment.destination);
+    }
   };
 
   const handleStartTracking = () => {
@@ -237,9 +288,14 @@ const Track: React.FC = () => {
   };
 
   const handleCloseMap = () => {
-    handleStopTracking();
     setSelectedShipment(null);
-    setRouteCoordinates([]);
+    if (isTracking) {
+      setIsTracking(false);
+      if (trackingInterval.current) {
+        clearInterval(trackingInterval.current);
+        trackingInterval.current = null;
+      }
+    }
   };
 
   useEffect(() => {
@@ -592,6 +648,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontFamily: 'JakartaSemiBold',
+  },
+  timeLeftText: {
+    color: '#3737ff',
+    fontFamily: 'JakartaMedium',
   },
 });
 

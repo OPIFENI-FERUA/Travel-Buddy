@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Buddy Admin</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation will be inserted here by nav.js -->
+        <main class="main-content">
+            <!-- Header will be inserted here by nav.js -->
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #4CAF50;">
+                        <span class="material-icons">people</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Users</h3>
+                        <p>1,234</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #2196F3;">
+                        <span class="material-icons">local_shipping</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Bookings</h3>
+                        <p>567</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #FF9800;">
+                        <span class="material-icons">payments</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Revenue</h3>
+                        <p>$89,432</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #9C27B0;">
+                        <span class="material-icons">trending_up</span>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Growth Rate</h3>
+                        <p>+15.3%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-activity">
+                <h2>Recent Activity</h2>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background-color: #4CAF50;">
+                            <span class="material-icons">person_add</span>
+                        </div>
+                        <div class="activity-details">
+                            <h4>New User Registration</h4>
+                            <p>John Doe registered as a new user</p>
+                            <span class="activity-time">2 minutes ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background-color: #2196F3;">
+                            <span class="material-icons">local_shipping</span>
+                        </div>
+                        <div class="activity-details">
+                            <h4>New Booking</h4>
+                            <p>Booking #1234 was created</p>
+                            <span class="activity-time">15 minutes ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background-color: #FF9800;">
+                            <span class="material-icons">payments</span>
+                        </div>
+                        <div class="activity-details">
+                            <h4>Payment Received</h4>
+                            <p>Payment of $500 received for booking #1234</p>
+                            <span class="activity-time">1 hour ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Load scripts -->
+    <script src="dummy-data.js"></script>
+    <script src="auth.js"></script>
+    <script src="nav.js"></script>
+</body>
+</html> 

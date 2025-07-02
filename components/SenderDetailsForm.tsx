@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import InputField from "@/components/InputField";
 import ProceedButton from "@/components/ProceedButton";
 import { router } from "expo-router";
@@ -18,6 +18,8 @@ const SenderDetailsForm: React.FC = () => {
     senderEstate: "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   // Rehydrate local form from Zustand when returning to this screen
   useFocusEffect(
     useCallback(() => {
@@ -25,21 +27,64 @@ const SenderDetailsForm: React.FC = () => {
     }, [sender])
   );
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    let isValid = true;
+
+    if (!form.senderName.trim()) {
+      newErrors.senderName = 'Name is required';
+      isValid = false;
+    }
+
+    if (!form.senderMobileNumber.trim()) {
+      newErrors.senderMobileNumber = 'Mobile number is required';
+      isValid = false;
+    } else if (!/^[0-9]{10}$/.test(form.senderMobileNumber.replace(/\D/g, ''))) {
+      newErrors.senderMobileNumber = 'Please enter a valid 10-digit mobile number';
+      isValid = false;
+    }
+
+    if (!form.senderLocation.trim()) {
+      newErrors.senderLocation = 'Location is required';
+      isValid = false;
+    }
+
+    if (!form.senderStreet.trim()) {
+      newErrors.senderStreet = 'Street is required';
+      isValid = false;
+    }
+
+    if (!form.senderEstate.trim()) {
+      newErrors.senderEstate = 'Estate is required';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleProceed = () => {
-    updateSender(form); // Save to Zustand
-    console.log(form);
-    router.push("/courier2"); // Navigate to next step
+    if (validateForm()) {
+      updateSender(form); // Save to Zustand
+      router.push("/courier2"); // Navigate to next step
+    } else {
+      Alert.alert('Error', 'Please fill in all required fields correctly');
+    }
   };
 
   const handleChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   return (
     <ScrollView
       style={styles.scrollView}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={{ flexGrow: 1 }}
     >
       <View style={styles.container}>
         <View style={styles.headerContainer}>
@@ -56,6 +101,7 @@ const SenderDetailsForm: React.FC = () => {
               onChangeText={(value) => handleChange("senderName", value)}
               style={styles.inputContainer}
               autoCapitalize="words"
+              error={errors.senderName}
             />
 
             <InputField
@@ -66,6 +112,7 @@ const SenderDetailsForm: React.FC = () => {
               style={styles.inputContainer}
               keyboardType="phone-pad"
               maxLength={10}
+              error={errors.senderMobileNumber}
             />
 
             <InputField
@@ -74,6 +121,7 @@ const SenderDetailsForm: React.FC = () => {
               value={form.senderLocation}
               onChangeText={(value) => handleChange("senderLocation", value)}
               style={styles.inputContainer}
+              error={errors.senderLocation}
             />
           </View>
 
@@ -86,6 +134,7 @@ const SenderDetailsForm: React.FC = () => {
                 value={form.senderStreet}
                 onChangeText={(value) => handleChange("senderStreet", value)}
                 style={styles.streetInput}
+                error={errors.senderStreet}
               />
 
               <InputField
@@ -94,6 +143,7 @@ const SenderDetailsForm: React.FC = () => {
                 value={form.senderEstate}
                 onChangeText={(value) => handleChange("senderEstate", value)}
                 style={styles.streetInput}
+                error={errors.senderEstate}
               />
             </View>
           </View>

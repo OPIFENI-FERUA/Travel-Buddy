@@ -18,15 +18,16 @@
       "supportsTablet": true
     },
     "android": {
+      "output": "server",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/splash-screen.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.opifeni.Buddy"
     },
     "web": {
       "bundler": "metro",
-      "output": "server",
-      "favicon": "./assets/images/splash-screen.png"
+      "output": "server"
     },
     "plugins": [
       [
@@ -34,7 +35,8 @@
         {
           "origin": "https://buddy.com/"
         }
-      ]
+      ],
+      "expo-barcode-scanner"
     ],
     "experiments": {
       "typedRoutes": true

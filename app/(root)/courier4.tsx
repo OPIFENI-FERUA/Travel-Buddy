@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image, Alert } from "react-native";
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Image, Alert, ActivityIndicator } from "react-native";
 import HeaderSection from "@/components/HeaderSection";
 import { icons } from "@/constants";
 import CustomButton from "@/components/CustomButton";
@@ -198,7 +198,19 @@ const Courier4Screen: React.FC = () => {
           onPress={handleProceed}
           style={styles.proceedButton}
           IconRight={RightArrowIcon}
+          loading={isLoading}
+          disabled={isLoading}
         />
+
+        {/* Loading Overlay */}
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <View style={styles.loadingContent}>
+              <ActivityIndicator size="large" color="#3737FF" />
+              <Text style={styles.loadingText}>Processing your request...</Text>
+            </View>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -276,6 +288,37 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 8,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingContent: {
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontFamily: "JakartaMedium",
+    color: '#333',
   },
 });
 

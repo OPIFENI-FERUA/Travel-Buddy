@@ -4,26 +4,23 @@ import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 
 interface ProceedButtonProps {
   onPress: () => void;
-
-  
+  disabled?: boolean;
 }
 
-const ProceedButton: React.FC<ProceedButtonProps> = ({ onPress }) => {
+const ProceedButton: React.FC<ProceedButtonProps> = ({ onPress, disabled = false }) => {
   return (
     <TouchableOpacity 
-      style={styles.button} 
+      style={[styles.button, disabled && styles.disabledButton]} 
       onPress={onPress}
       activeOpacity={0.8}
-      
+      disabled={disabled}
     >
       <View style={styles.buttonContent}>
-   
-        <Text style={styles.buttonText}>Proceed</Text>
-      
-        <View style={styles.arrowContainer}>
+        <Text style={[styles.buttonText, disabled && styles.disabledText]}>Proceed</Text>
+        <View style={[styles.arrowContainer, disabled && styles.disabledArrowContainer]}>
           <Image
             source={icons.frontArrow}
-            style={styles.arrowIcon}
+            style={[styles.arrowIcon, disabled && styles.disabledArrowIcon]}
             resizeMode="contain"
           />
         </View>
@@ -46,6 +43,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  disabledButton: {
+    backgroundColor: "#a0a0ff",
+    opacity: 0.8,
+  },
   buttonContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -60,16 +61,25 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: -0.5,
   },
+  disabledText: {
+    color: "#e0e0e0",
+  },
   arrowContainer: {
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 8,
     marginLeft: 8,
   },
+  disabledArrowContainer: {
+    backgroundColor: "#e0e0e0",
+  },
   arrowIcon: {
     width: 20,
     height: 20,
     color: "#3737ff",
+  },
+  disabledArrowIcon: {
+    tintColor: "#a0a0ff",
   },
 });
 

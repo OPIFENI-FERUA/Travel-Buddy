@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, Text, StyleSheet, FlatList, ScrollView, Image, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, FlatList, ScrollView, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Alert } from "react-native";
 import WelcomeHeader from "@/components/WelcomeHeader";
 import AdvertBanner from "@/components/AdvertBanner";
 import ActionButton from "@/components/ActionButton";
@@ -171,7 +171,7 @@ const HOME: React.FC = () => {
 
   return (
     <ScrollView 
-      scrollEnabled={false}
+      scrollEnabled={true}
       bounces={false}
       showsVerticalScrollIndicator={false}
       style={styles.container}
@@ -191,6 +191,7 @@ const HOME: React.FC = () => {
         images={[
           require("@/assets/images/banner1.jpg"),
           require("@/assets/images/banner2.jpg"),
+          require("@/assets/images/banner3.png"),
         ]}
         autoScrollInterval={5000} // 7 seconds between slides
       />
@@ -208,8 +209,8 @@ const HOME: React.FC = () => {
         />
         <ActionButton
           iconUrl={icons.Send}
-          label="Receive package"
-          onPress={() => router.push("/receive")}
+          label="Coming Soon"
+          onPress={() => Alert.alert("Coming Soon", "This feature will be available soon!", [{ text: "OK", style: "default" }])}
           iconAspectRatio={0.98}
         />
       </View>

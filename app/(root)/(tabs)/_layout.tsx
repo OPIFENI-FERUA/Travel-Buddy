@@ -95,7 +95,7 @@ const Layout = () => {
             ),
           }}
         />
-        <Tabs.Screen
+        {/* <Tabs.Screen
           name="chat"
           options={{
             title: "Chat",
@@ -103,7 +103,7 @@ const Layout = () => {
               <TabIcon source={icons.chat} focused={focused} label="Chat" />
             ),
           }}
-        />
+        /> */}
         <Tabs.Screen
           name="profile"
           options={{

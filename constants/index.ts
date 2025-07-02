@@ -44,6 +44,8 @@ import airtel from "@/assets/images/airtel.png";
 import mtn from "@/assets/images/mtn.png";
 import banner1 from "@/assets/images/banner1.jpg";
 import banner2 from "@/assets/images/banner2.jpg";
+import banner3 from "@/assets/images/banner3.png";
+
 
 
 
@@ -63,6 +65,7 @@ export const images = {
     mtn,
     banner1,
     banner2,
+    banner3,
 };
 
 export const icons = {

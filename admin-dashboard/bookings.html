@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookings Management - Buddy Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="../assets/images/logo.png" alt="Buddy Logo">
+                <h2>Buddy Admin</h2>
+            </div>
+            <ul class="nav-links">
+                <li>
+                    <a href="index.html">
+                        <span class="material-icons">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="users.html">
+                        <span class="material-icons">people</span>
+                        Users
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="bookings.html">
+                        <span class="material-icons">local_shipping</span>
+                        Bookings
+                    </a>
+                </li>
+                <li>
+                    <a href="payments.html">
+                        <span class="material-icons">payments</span>
+                        Payments
+                    </a>
+                </li>
+                <li>
+                    <a href="settings.html">
+                        <span class="material-icons">settings</span>
+                        Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <div class="header-content">
+                    <h1>Bookings Management</h1>
+                    <div class="user-info">
+                        <span class="material-icons">notifications</span>
+                        <div class="user-profile">
+                            <img src="../assets/images/profile.png" alt="Admin Profile">
+                            <span>Admin</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Bookings Management Section -->
+            <div class="management-section">
+                <div class="section-header">
+                    <div class="filters">
+                        <div class="search-bar">
+                            <span class="material-icons">search</span>
+                            <input type="text" id="bookingSearch" placeholder="Search bookings...">
+                        </div>
+                        <div class="filter-group">
+                            <select id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <select id="dateFilter">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Customer</th>
+                                <th>Pickup</th>
+                                <th>Delivery</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <!-- Booking rows will be added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button id="prevPage" class="pagination-button">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <span id="pageInfo">Page 1 of 1</span>
+                    <button id="nextPage" class="pagination-button">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div id="bookingDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Booking Details</h2>
+                <span class="close-button" onclick="closeBookingDetailsModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="bookingDetails">
+                <!-- Booking details will be added dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-button" onclick="closeBookingDetailsModal()">Close</button>
+                <button class="submit-button" id="updateStatusButton">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="bookings.js"></script>
+</body>
+</html> 

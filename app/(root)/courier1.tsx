@@ -1,66 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import HeaderSection from "@/components/HeaderSection";
 import SenderDetailsForm from "@/components/SenderDetailsForm";
 
-interface FormData {
-  name: string;
-  mobileNumber: string;
-  location: string;
-  street: string;
-  estate: string;
-}
-
 const HOME: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    senderName: '',
-    senderMobileNumber: '',
-    senderLocation: '',
-    senderStreet: '',
-    senderEstate: ''
-  });
-
-  const [errors, setErrors] = useState<Partial<FormData>>({});
-
-  // Pass these handlers directly to SenderDetailsForm
-  const handleNameChange = (value: string) => {
-    setFormData(prev => ({ ...prev, name: value }));
-    if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
-  };
-
-  const handleMobileChange = (value: string) => {
-    setFormData(prev => ({ ...prev, mobileNumber: value }));
-    if (errors.mobileNumber) setErrors(prev => ({ ...prev, mobileNumber: '' }));
-  };
-
-  const handleLocationChange = (value: string) => {
-    setFormData(prev => ({ ...prev, location: value }));
-    if (errors.location) setErrors(prev => ({ ...prev, location: '' }));
-  };
-
-  const handleStreetChange = (value: string) => {
-    setFormData(prev => ({ ...prev, street: value }));
-    if (errors.street) setErrors(prev => ({ ...prev, street: '' }));
-  };
-
-  const handleEstateChange = (value: string) => {
-    setFormData(prev => ({ ...prev, estate: value }));
-    if (errors.estate) setErrors(prev => ({ ...prev, estate: '' }));
-  };
-
   return (
     <ScrollView>
       <View style={styles.container}>
         <HeaderSection />
-        <SenderDetailsForm
-          formData={formData}
-          errors={errors}
-          onNameChange={handleNameChange}
-          onMobileChange={handleMobileChange}
-          onLocationChange={handleLocationChange}
-          onStreetChange={handleStreetChange}
-          onEstateChange={handleEstateChange}
-        />
+        <SenderDetailsForm />
       </View>
     </ScrollView>
   );

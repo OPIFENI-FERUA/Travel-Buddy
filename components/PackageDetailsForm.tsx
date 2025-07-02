@@ -97,7 +97,7 @@ const PackageDetailsForm: React.FC = () => {
       setForm({
         type: packaged.type || "Electronics",
         isFragile: packaged.isFragile || false,
-        hasTracking: packaged.hasTracking || false,
+        hasTracking: packaged.hasTracking || true,
         description: packaged.description || "",
         weight: packaged.weight?.toString() || "",
         image: packaged.image?.toString() || "",

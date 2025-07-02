@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from "react-native";
 
 import { ButtonProps } from "@/types/type";
 
@@ -45,28 +45,39 @@ const CustomButton = ({
   IconLeft,
   IconRight,
   style,
+  loading = false,
+  disabled = false,
   ...props
 }: ButtonProps) => {
   const buttonStyle = {
     ...styles.button,
     ...getBgVariantStyle(bgVariant),
     ...(style as ViewStyle), // Allow additional styles to be passed via `style` prop
+    ...(disabled && styles.disabledButton),
   };
 
   const textStyle = {
     ...styles.text,
     ...getTextVariantStyle(textVariant),
+    ...(disabled && styles.disabledText),
   };
 
   return (
     <TouchableOpacity
       onPress={onPress}
       style={buttonStyle}
+      disabled={disabled || loading}
       {...props}
     >
-      {IconLeft && <IconLeft />}
-      <Text style={textStyle}>{title}</Text>
-      {IconRight && <IconRight />}
+      {loading ? (
+        <ActivityIndicator color="#fff" />
+      ) : (
+        <>
+          {IconLeft && <IconLeft />}
+          <Text style={textStyle}>{title}</Text>
+          {IconRight && <IconRight />}
+        </>
+      )}
     </TouchableOpacity>
   );
 };
@@ -84,11 +95,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.7,
     shadowRadius: 4,
     elevation: 5, // For Android shadow
-    
+  },
+  disabledButton: {
+    opacity: 0.7,
+    backgroundColor: "#a0a0ff",
   },
   text: {
     fontSize: 18, // text-lg
     fontWeight: "bold",
+  },
+  disabledText: {
+    color: "#e0e0e0",
   },
 });
 
