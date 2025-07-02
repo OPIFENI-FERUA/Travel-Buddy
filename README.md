@@ -48,6 +48,6 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-#the app runs on sdk 52
-# download expo 52 from google chrome on a phone 
-#the computer running the code and the phone should be on the same network then scan the qrcode to run the app on your phone
+# The app runs on expo sdk 52
+# Download expo 52 from google chrome on a phone 
+# The computer running the code and the phone should be on the same network then scan the qrcode to run the app on your phone
